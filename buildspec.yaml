@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      - pip install --upgrade 'six==1.15.0'
+      - pip install pre-commit cloudformation-cli-java-plugin
+      - aws --version
+      - $(aws ecr get-login --no-include-email --region ap-northeast-2)
+      - yum -y install moreutils # For using 'sponge' later
+      - mvn clean install # Creates a jar file
+  build:
+    commands:
+      - $(aws ecr get-login --no-include-email --region $AWS_REGION) # Login to AWS ECR
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7) # Extracting first 7 characters of the commitID to use it as ImageTag
+      - docker build -t ecr-sample .
+      - docker tag ecr-sample:latest 136884313584.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-sample:latest
+  post_build:
+    commands:
+      - docker push 136884313584.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-sample:latest # Pushing the image to AWS ECS
+      - jq '.Parameters.ImageTag = "'$IMAGE_TAG'"' config.json | sponge config.json # Changes the ImageTag value from config.json
+
+artifacts:
+  files: 
+    - '**/*'
+
+cache:
+  paths:
+    - '/root/.m2/**/*' # Caches maven dependencies for a quicker build

@@ -1,0 +1,6 @@
+{
+  "Parameters": {
+    "DockerImageRepository": "ecr-sample",
+    "ImageTag": "latest"
+  }
+}

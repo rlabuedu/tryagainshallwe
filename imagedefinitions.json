@@ -1,0 +1,6 @@
+[
+  {
+    "name": "genome-cont",
+    "imageUri": "136884313584.dkr.ecr.ap-northeast-2.amazonaws.com/genome:latest"
+  }
+]
